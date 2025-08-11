@@ -1,0 +1,461 @@
+"use client";
+
+import * as React from "react";
+import { z } from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { format } from "date-fns";
+import {
+  Calendar as CalendarIcon,
+  Filter,
+  X,
+  Trash2,
+  MoreHorizontal,
+  Loader2,
+} from "lucide-react";
+import type { Student, AttendanceRecord } from "@/lib/types";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+} from "@/components/ui/card";
+import {
+  Table,
+  TableHeader,
+  TableRow,
+  TableHead,
+  TableBody,
+  TableCell,
+} from "@/components/ui/table";
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+
+const markAttendanceSchema = z.object({
+  studentId: z.string({ required_error: "Please select a student." }),
+  date: z.date({ required_error: "A date is required." }),
+  status: z.enum(["Present", "Absent", "Excused"], {
+    required_error: "You need to select an attendance status.",
+  }),
+});
+
+const filterSchema = z.object({
+  studentId: z.string().optional(),
+  date: z.date().optional(),
+  classId: z.string().optional(),
+});
+
+interface AttendanceTabProps {
+  students: Student[];
+  attendanceRecords: AttendanceRecord[];
+  onMarkAttendance: (data: { studentId: string; date: string; status: string }) => Promise<boolean>;
+  onApplyFilters: (filters: { studentId?: string; date?: string; classId?: string }) => void;
+  onClearFilters: () => void;
+  onDeleteAttendance: (attendanceId: string) => void;
+}
+
+export function AttendanceTab({
+  students,
+  attendanceRecords,
+  onMarkAttendance,
+  onApplyFilters,
+  onClearFilters,
+  onDeleteAttendance
+}: AttendanceTabProps) {
+  const [isAlertOpen, setIsAlertOpen] = React.useState(false);
+  const [recordToDelete, setRecordToDelete] = React.useState<AttendanceRecord | null>(null);
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+
+  const markAttendanceForm = useForm<z.infer<typeof markAttendanceSchema>>({
+    resolver: zodResolver(markAttendanceSchema),
+    defaultValues: { date: new Date() },
+  });
+
+  const filterForm = useForm<z.infer<typeof filterSchema>>({
+    resolver: zodResolver(filterSchema),
+  });
+
+  const onMarkAttendanceSubmit = async (
+    data: z.infer<typeof markAttendanceSchema>
+  ) => {
+    setIsSubmitting(true);
+    const success = await onMarkAttendance({
+      ...data,
+      date: format(data.date, "yyyy-MM-dd"),
+    });
+    if(success) {
+      markAttendanceForm.reset({ studentId: '', status: undefined, date: new Date() });
+    }
+    setIsSubmitting(false);
+  };
+
+  const onFilterSubmit = (data: z.infer<typeof filterSchema>) => {
+    onApplyFilters({
+      ...data,
+      date: data.date ? format(data.date, "yyyy-MM-dd") : undefined,
+    });
+  };
+
+  const handleClearFilters = () => {
+    filterForm.reset({ studentId: '', date: undefined, classId: '' });
+    onClearFilters();
+  };
+
+  const openDeleteDialog = (record: AttendanceRecord) => {
+    setRecordToDelete(record);
+    setIsAlertOpen(true);
+  };
+
+  const statusVariant = (status: string) => {
+    switch (status) {
+      case "Present": return "default";
+      case "Absent": return "destructive";
+      case "Excused": return "secondary";
+      default: return "outline";
+    }
+  }
+
+  return (
+    <>
+      <div className="flex flex-col gap-8">
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight">Attendance Records</h2>
+          <p className="text-muted-foreground">
+            Mark daily attendance and manage records.
+          </p>
+        </div>
+
+        <div className="grid gap-6 lg:grid-cols-5">
+          <div className="lg:col-span-2 xl:col-span-2">
+            <Card>
+              <Form {...markAttendanceForm}>
+                <form onSubmit={markAttendanceForm.handleSubmit(onMarkAttendanceSubmit)}>
+                  <CardHeader>
+                    <CardTitle>Mark Attendance</CardTitle>
+                    <CardDescription>
+                      Select a student and mark their attendance.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <FormField
+                      control={markAttendanceForm.control}
+                      name="studentId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Student</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select a student" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {students.map((student) => (
+                                <SelectItem key={student.studentId} value={student.studentId}>
+                                  {student.name} ({student.rollNo})
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={markAttendanceForm.control}
+                      name="date"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                          <FormLabel>Date</FormLabel>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <FormControl>
+                                <Button
+                                  variant={"outline"}
+                                  className={cn(
+                                    "w-full pl-3 text-left font-normal",
+                                    !field.value && "text-muted-foreground"
+                                  )}
+                                >
+                                  {field.value ? (
+                                    format(field.value, "PPP")
+                                  ) : (
+                                    <span>Pick a date</span>
+                                  )}
+                                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                </Button>
+                              </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <Calendar
+                                mode="single"
+                                selected={field.value}
+                                onSelect={field.onChange}
+                                disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
+                                initialFocus
+                              />
+                            </PopoverContent>
+                          </Popover>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={markAttendanceForm.control}
+                      name="status"
+                      render={({ field }) => (
+                        <FormItem className="space-y-3">
+                          <FormLabel>Status</FormLabel>
+                          <FormControl>
+                            <RadioGroup
+                              onValueChange={field.onChange}
+                              defaultValue={field.value}
+                              className="flex gap-4"
+                            >
+                              <FormItem className="flex items-center space-x-2 space-y-0">
+                                <FormControl>
+                                  <RadioGroupItem value="Present" />
+                                </FormControl>
+                                <FormLabel className="font-normal">Present</FormLabel>
+                              </FormItem>
+                              <FormItem className="flex items-center space-x-2 space-y-0">
+                                <FormControl>
+                                  <RadioGroupItem value="Absent" />
+                                </FormControl>
+                                <FormLabel className="font-normal">Absent</FormLabel>
+                              </FormItem>
+                              <FormItem className="flex items-center space-x-2 space-y-0">
+                                <FormControl>
+                                  <RadioGroupItem value="Excused" />
+                                </FormControl>
+                                <FormLabel className="font-normal">Excused</FormLabel>
+                              </FormItem>
+                            </RadioGroup>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </CardContent>
+                  <CardFooter>
+                    <Button type="submit" className="w-full" disabled={isSubmitting}>
+                      {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      Submit
+                    </Button>
+                  </CardFooter>
+                </form>
+              </Form>
+            </Card>
+          </div>
+          <div className="lg:col-span-3 xl:col-span-3">
+            <Card>
+              <Form {...filterForm}>
+                <form onSubmit={filterForm.handleSubmit(onFilterSubmit)}>
+                  <CardHeader>
+                    <CardTitle>Filter Records</CardTitle>
+                    <CardDescription>
+                      Refine the list of attendance records.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="grid gap-4 sm:grid-cols-2">
+                    <FormField
+                      control={filterForm.control}
+                      name="studentId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Student</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="All Students" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                                <SelectItem value="">All Students</SelectItem>
+                                {students.map((student) => (
+                                    <SelectItem key={student.studentId} value={student.studentId}>
+                                    {student.name} ({student.rollNo})
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                          </Select>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={filterForm.control}
+                      name="date"
+                      render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                          <FormLabel>Date</FormLabel>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <FormControl>
+                                <Button
+                                  variant={"outline"}
+                                  className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}
+                                >
+                                  {field.value ? format(field.value, "PPP") : <span>Any Date</span>}
+                                  <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                </Button>
+                              </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <Calendar mode="single" selected={field.value} onSelect={field.onChange} initialFocus/>
+                            </PopoverContent>
+                          </Popover>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={filterForm.control}
+                      name="classId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Class</FormLabel>
+                           <FormControl>
+                            <Input placeholder="Any Class" {...field} />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </CardContent>
+                  <CardFooter className="justify-end gap-2">
+                    <Button variant="ghost" type="button" onClick={handleClearFilters}>
+                      <X className="mr-2 h-4 w-4" /> Clear
+                    </Button>
+                    <Button type="submit">
+                      <Filter className="mr-2 h-4 w-4" /> Apply
+                    </Button>
+                  </CardFooter>
+                </form>
+              </Form>
+            </Card>
+          </div>
+        </div>
+        
+        <Card>
+            <CardHeader>
+                <CardTitle>Attendance History</CardTitle>
+                <CardDescription>A complete log of all attendance records.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Date</TableHead>
+                            <TableHead>Student Name</TableHead>
+                            <TableHead>Roll No</TableHead>
+                            <TableHead>Class</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead className="text-right">Actions</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {attendanceRecords.length > 0 ? (
+                            attendanceRecords.map((record) => (
+                                <TableRow key={record.attendanceId}>
+                                    <TableCell>{format(new Date(record.date), "PP")}</TableCell>
+                                    <TableCell className="font-medium">{record.name}</TableCell>
+                                    <TableCell>{record.rollNo}</TableCell>
+                                    <TableCell>{record.classId}</TableCell>
+                                    <TableCell>
+                                        <Badge variant={statusVariant(record.status)}>{record.status}</Badge>
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <Button variant="ghost" className="h-8 w-8 p-0">
+                                                    <span className="sr-only">Open menu</span>
+                                                    <MoreHorizontal className="h-4 w-4" />
+                                                </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent align="end">
+                                                <DropdownMenuItem className="text-destructive" onClick={() => openDeleteDialog(record)}>
+                                                    <Trash2 className="mr-2 h-4 w-4" />
+                                                    Delete
+                                                </DropdownMenuItem>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
+                                    </TableCell>
+                                </TableRow>
+                            ))
+                        ) : (
+                            <TableRow>
+                                <TableCell colSpan={6} className="h-24 text-center">No records found.</TableCell>
+                            </TableRow>
+                        )}
+                    </TableBody>
+                </Table>
+            </CardContent>
+        </Card>
+      </div>
+
+       <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete the attendance record for <strong>{recordToDelete?.name}</strong> on {recordToDelete?.date ? format(new Date(recordToDelete.date), 'PP') : ''}. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive hover:bg-destructive/90"
+              onClick={() => {
+                if (recordToDelete) {
+                  onDeleteAttendance(recordToDelete.attendanceId);
+                }
+              }}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  );
+}
