@@ -313,7 +313,6 @@ export function AttendanceTab({
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                                <SelectItem value="">All Students</SelectItem>
                                 {students.map((student) => (
                                     <SelectItem key={student.studentId} value={student.studentId}>
                                     {student.name} ({student.rollNo})
