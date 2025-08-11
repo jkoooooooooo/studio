@@ -7,6 +7,7 @@ import {
   ListChecks,
   School,
   Loader2,
+  Group,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { Student, AttendanceRecord } from "@/lib/types";
@@ -31,8 +32,9 @@ import {
 import { StudentsTab } from "./dashboard/students-tab";
 import { AttendanceTab } from "./dashboard/attendance-tab";
 import { DashboardTab } from "./dashboard/dashboard-tab";
+import { ClassAttendanceTab } from "./dashboard/class-attendance-tab";
 
-type Section = "dashboard" | "students" | "records";
+type Section = "dashboard" | "students" | "records" | "class-attendance";
 
 export function Dashboard() {
   const [students, setStudents] = React.useState<Student[]>([]);
@@ -40,7 +42,8 @@ export function Dashboard() {
     AttendanceRecord[]
   >([]);
   const [isLoading, setIsLoading] = React.useState(true);
-  const [activeSection, setActiveSection] = React.useState<Section>("dashboard");
+  const [activeSection, setActiveSection] =
+    React.useState<Section>("dashboard");
   const { toast } = useToast();
 
   const loadData = React.useCallback(async () => {
@@ -131,67 +134,73 @@ export function Dashboard() {
       return false;
     }
   };
-  
-  const handleApplyFilters = async (filters: { studentId?: string; date?: string; classId?: string }) => {
+
+  const handleApplyFilters = async (filters: {
+    studentId?: string;
+    date?: string;
+    classId?: string;
+  }) => {
     setIsLoading(true);
     try {
-        const filteredData = await getAttendance(filters);
-        setAttendanceRecords(filteredData || []);
-        toast({
-            title: "Success",
-            description: "Filters applied.",
-        });
+      const filteredData = await getAttendance(filters);
+      setAttendanceRecords(filteredData || []);
+      toast({
+        title: "Success",
+        description: "Filters applied.",
+      });
     } catch (error) {
-        toast({
-            variant: "destructive",
-            title: "Failed to apply filters",
-            description: error instanceof Error ? error.message : "An unknown error occurred.",
-        });
+      toast({
+        variant: "destructive",
+        title: "Failed to apply filters",
+        description:
+          error instanceof Error ? error.message : "An unknown error occurred.",
+      });
     } finally {
-        setIsLoading(false);
+      setIsLoading(false);
     }
   };
 
   const handleClearFilters = async () => {
     setIsLoading(true);
     try {
-        const allData = await getAttendance();
-        setAttendanceRecords(allData || []);
-        toast({
-            title: "Success",
-            description: "Filters cleared.",
-        });
+      const allData = await getAttendance();
+      setAttendanceRecords(allData || []);
+      toast({
+        title: "Success",
+        description: "Filters cleared.",
+      });
     } catch (error) {
-         toast({
-            variant: "destructive",
-            title: "Failed to clear filters",
-            description: error instanceof Error ? error.message : "An unknown error occurred.",
-        });
+      toast({
+        variant: "destructive",
+        title: "Failed to clear filters",
+        description:
+          error instanceof Error ? error.message : "An unknown error occurred.",
+      });
     } finally {
-        setIsLoading(false);
+      setIsLoading(false);
     }
   };
 
   const handleDeleteAttendance = async (attendanceId: string) => {
     try {
-        await deleteAttendance({ attendanceId });
-        toast({
-            title: "Success",
-            description: "Attendance record deleted successfully."
-        });
-        await loadData();
-    } catch(error) {
-        toast({
-            variant: "destructive",
-            title: "Failed to delete record",
-            description: error instanceof Error ? error.message : "An unknown error occurred.",
-        });
+      await deleteAttendance({ attendanceId });
+      toast({
+        title: "Success",
+        description: "Attendance record deleted successfully.",
+      });
+      await loadData();
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Failed to delete record",
+        description:
+          error instanceof Error ? error.message : "An unknown error occurred.",
+      });
     }
-  }
-
+  };
 
   const renderContent = () => {
-    if (isLoading) {
+    if (isLoading && !students.length && !attendanceRecords.length) {
       return (
         <div className="flex h-full w-full items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -201,7 +210,12 @@ export function Dashboard() {
 
     switch (activeSection) {
       case "dashboard":
-        return <DashboardTab students={students} attendanceRecords={attendanceRecords} />;
+        return (
+          <DashboardTab
+            students={students}
+            attendanceRecords={attendanceRecords}
+          />
+        );
       case "students":
         return (
           <StudentsTab
@@ -219,6 +233,14 @@ export function Dashboard() {
             onApplyFilters={handleApplyFilters}
             onClearFilters={handleClearFilters}
             onDeleteAttendance={handleDeleteAttendance}
+          />
+        );
+      case "class-attendance":
+        return (
+          <ClassAttendanceTab
+            students={students}
+            onMarkAttendance={handleMarkAttendance}
+            isLoading={isLoading}
           />
         );
       default:
@@ -263,6 +285,15 @@ export function Dashboard() {
                 >
                   <ListChecks />
                   Attendance
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  onClick={() => setActiveSection("class-attendance")}
+                  isActive={activeSection === "class-attendance"}
+                >
+                  <Group />
+                  Class Attendance
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
