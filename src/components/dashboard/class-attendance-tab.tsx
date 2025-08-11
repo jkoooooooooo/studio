@@ -52,6 +52,7 @@ import {
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 
 const classAttendanceSchema = z.object({
   classId: z.string({ required_error: "Please select a class." }),
@@ -250,12 +251,18 @@ export function ClassAttendanceTab({
                                         onValueChange={(status: AttendanceStatus) => handleStatusChange(student.studentId, status)}
                                         className="flex justify-end gap-4"
                                       >
-                                        <RadioGroupItem value="Present" id={`${student.studentId}-present`}/>
-                                        <Label htmlFor={`${student.studentId}-present`}>P</Label>
-                                        <RadioGroupItem value="Absent" id={`${student.studentId}-absent`}/>
-                                        <Label htmlFor={`${student.studentId}-absent`}>A</Label>
-                                        <RadioGroupItem value="Excused" id={`${student.studentId}-excused`}/>
-                                        <Label htmlFor={`${student.studentId}-excused`}>E</Label>
+                                        <div className="flex items-center space-x-2">
+                                          <RadioGroupItem value="Present" id={`${student.studentId}-present`}/>
+                                          <Label htmlFor={`${student.studentId}-present`}>P</Label>
+                                        </div>
+                                        <div className="flex items-center space-x-2">
+                                          <RadioGroupItem value="Absent" id={`${student.studentId}-absent`}/>
+                                          <Label htmlFor={`${student.studentId}-absent`}>A</Label>
+                                        </div>
+                                        <div className="flex items-center space-x-2">
+                                          <RadioGroupItem value="Excused" id={`${student.studentId}-excused`}/>
+                                          <Label htmlFor={`${student.studentId}-excused`}>E</Label>
+                                        </div>
                                       </RadioGroup>
                                     </TableCell>
                                 </TableRow>
