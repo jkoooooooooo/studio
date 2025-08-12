@@ -9,6 +9,7 @@ import {
   Loader2,
   Group,
   PieChart,
+  UserCheck,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { Student, AttendanceRecord } from "@/lib/types";
@@ -35,8 +36,15 @@ import { AttendanceTab } from "./dashboard/attendance-tab";
 import { DashboardTab } from "./dashboard/dashboard-tab";
 import { ClassAttendanceTab } from "./dashboard/class-attendance-tab";
 import { ClassStatsTab } from "./dashboard/class-stats-tab";
+import { MarkAttendanceTab } from "./dashboard/mark-attendance-tab";
 
-type Section = "dashboard" | "students" | "records" | "class-attendance" | "class-stats";
+type Section =
+  | "dashboard"
+  | "students"
+  | "attendance"
+  | "class-attendance"
+  | "class-stats"
+  | "mark-attendance";
 
 export function Dashboard() {
   const [students, setStudents] = React.useState<Student[]>([]);
@@ -231,6 +239,13 @@ export function Dashboard() {
             attendanceRecords={attendanceRecords}
           />
         );
+      case "mark-attendance":
+        return (
+          <MarkAttendanceTab
+            students={students}
+            onMarkAttendance={handleMarkAttendance}
+          />
+        );
       case "class-attendance":
         return (
           <ClassAttendanceTab
@@ -255,12 +270,11 @@ export function Dashboard() {
             attendanceRecords={attendanceRecords}
           />
         );
-      case "records":
+      case "attendance":
         return (
           <AttendanceTab
             students={students}
             attendanceRecords={attendanceRecords}
-            onMarkAttendance={handleMarkAttendance}
             onApplyFilters={handleApplyFilters}
             onClearFilters={handleClearFilters}
             onDeleteAttendance={handleDeleteAttendance}
@@ -294,6 +308,15 @@ export function Dashboard() {
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton
+                  onClick={() => setActiveSection("mark-attendance")}
+                  isActive={activeSection === "mark-attendance"}
+                >
+                  <UserCheck />
+                  Mark Attendance
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton
                   onClick={() => setActiveSection("class-attendance")}
                   isActive={activeSection === "class-attendance"}
                 >
@@ -310,15 +333,6 @@ export function Dashboard() {
                   Students
                 </SidebarMenuButton>
               </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  onClick={() => setActiveSection("records")}
-                  isActive={activeSection === "records"}
-                >
-                  <ListChecks />
-                  Attendance
-                </SidebarMenuButton>
-              </SidebarMenuItem>
                <SidebarMenuItem>
                 <SidebarMenuButton
                   onClick={() => setActiveSection("class-stats")}
@@ -326,6 +340,15 @@ export function Dashboard() {
                 >
                   <PieChart />
                   Class Stats
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  onClick={() => setActiveSection("attendance")}
+                  isActive={activeSection === "attendance"}
+                >
+                  <ListChecks />
+                  Attendance
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
