@@ -57,6 +57,7 @@ import { Label } from "@/components/ui/label";
 const classAttendanceSchema = z.object({
   classId: z.string({ required_error: "Please select a class." }),
   date: z.date({ required_error: "A date is required." }),
+  studentId: z.string().optional(),
 });
 
 type AttendanceStatus = "Present" | "Absent";
@@ -84,20 +85,25 @@ export function ClassAttendanceTab({
 
   const form = useForm<z.infer<typeof classAttendanceSchema>>({
     resolver: zodResolver(classAttendanceSchema),
-    defaultValues: { date: new Date(), classId: "" },
+    defaultValues: { date: new Date(), classId: "", studentId: "" },
   });
 
   const uniqueClasses = React.useMemo(() => {
     const classIds = new Set(students.map((s) => s.classId));
     return Array.from(classIds);
   }, [students]);
-
+  
   const studentsInClass = React.useMemo(() => {
-    return selectedClass ? students.filter((s) => s.classId === selectedClass) : [];
-  }, [students, selectedClass]);
+    const filteredStudents = selectedClass ? students.filter((s) => s.classId === selectedClass) : [];
+    const selectedStudentId = form.getValues("studentId");
+    if(selectedStudentId) {
+      return filteredStudents.filter(s => s.studentId === selectedStudentId);
+    }
+    return filteredStudents;
+  }, [students, selectedClass, form]);
   
   React.useEffect(() => {
-    // Reset statuses when class changes
+    // Reset statuses when class or student filter changes
     const initialStatuses: Record<string, AttendanceStatus> = {};
     studentsInClass.forEach(student => {
         initialStatuses[student.studentId] = 'Present'; // Default to Present
@@ -108,6 +114,7 @@ export function ClassAttendanceTab({
   const handleClassChange = (classId: string) => {
     setSelectedClass(classId);
     form.setValue("classId", classId);
+    form.setValue("studentId", ""); // Reset student filter
   }
 
   const handleStatusChange = (studentId: string, status: AttendanceStatus) => {
@@ -126,15 +133,17 @@ export function ClassAttendanceTab({
     setIsSubmitting(true);
     const date = format(data.date, "yyyy-MM-dd");
 
+    const studentsToMark = studentsInClass.map(s => s.studentId);
+    
     const existingRecords = attendanceRecords.filter(
-      (record) => record.classId === data.classId && record.date === date
+      (record) => record.date === date && studentsToMark.includes(record.studentId)
     );
 
     if (existingRecords.length > 0) {
        toast({
         variant: "destructive",
         title: "Attendance Already Marked",
-        description: `Attendance for class ${data.classId} has already been marked on ${format(data.date, "PP")}. Please delete existing records first if you wish to overwrite them.`,
+        description: `Attendance for one or more selected students has already been marked on ${format(data.date, "PP")}. Please delete existing records first if you wish to overwrite them.`,
       });
       setIsSubmitting(false);
       return;
@@ -158,7 +167,7 @@ export function ClassAttendanceTab({
       <div>
         <h2 className="text-3xl font-bold tracking-tight">Class Attendance</h2>
         <p className="text-muted-foreground">
-          Mark attendance for an entire class at once.
+          Mark attendance for an entire class or a specific student.
         </p>
       </div>
 
@@ -166,12 +175,12 @@ export function ClassAttendanceTab({
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <Card>
                 <CardHeader>
-                <CardTitle>Select Class and Date</CardTitle>
+                <CardTitle>Select Class, Date and Student</CardTitle>
                 <CardDescription>
-                    Choose a class and date to mark attendance for.
+                    Choose a class, date, and optionally a student to mark attendance for.
                 </CardDescription>
                 </CardHeader>
-                <CardContent className="grid gap-6 sm:grid-cols-2">
+                <CardContent className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 <FormField
                     control={form.control}
                     name="classId"
@@ -195,6 +204,35 @@ export function ClassAttendanceTab({
                         <FormMessage />
                     </FormItem>
                     )}
+                />
+                 <FormField
+                  control={form.control}
+                  name="studentId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Student (Optional)</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                        disabled={!selectedClass}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="All Students" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                           <SelectItem value="">All Students</SelectItem>
+                          {students.filter(s => s.classId === selectedClass).map((student) => (
+                            <SelectItem key={student.studentId} value={student.studentId}>
+                              {student.name} ({student.rollNo})
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
                 <FormField
                     control={form.control}
@@ -283,16 +321,16 @@ export function ClassAttendanceTab({
                                     ))
                                 ) : (
                                     <TableRow>
-                                        <TableCell colSpan={3} className="h-24 text-center">No students in this class.</TableCell>
+                                        <TableCell colSpan={3} className="h-24 text-center">No students found for the selected criteria.</TableCell>
                                     </TableRow>
                                 )}
                             </TableBody>
                         </Table>
                     </CardContent>
                     <CardFooter>
-                        <Button type="submit" className="w-full" disabled={isSubmitting || isLoading}>
+                        <Button type="submit" className="w-full" disabled={isSubmitting || isLoading || studentsInClass.length === 0}>
                             {(isSubmitting || isLoading) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                            Submit Class Attendance
+                            Submit Attendance
                         </Button>
                     </CardFooter>
                 </Card>
