@@ -141,144 +141,143 @@ export function ClassAttendanceTab({
         </p>
       </div>
 
-      <Card>
-        <Form {...form}>
+       <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
-            <CardHeader>
-              <CardTitle>Select Class and Date</CardTitle>
-              <CardDescription>
-                Choose a class and date to mark attendance for.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="grid gap-6 sm:grid-cols-2">
-              <FormField
-                control={form.control}
-                name="classId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Class</FormLabel>
-                    <Select onValueChange={handleClassChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a class" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {uniqueClasses.map((classId) => (
-                          <SelectItem key={classId} value={classId}>
-                            {classId}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="date"
-                render={({ field }) => (
-                  <FormItem className="flex flex-col">
-                    <FormLabel>Date</FormLabel>
-                    <Popover>
-                      <PopoverTrigger asChild>
+            <Card>
+                <CardHeader>
+                <CardTitle>Select Class and Date</CardTitle>
+                <CardDescription>
+                    Choose a class and date to mark attendance for.
+                </CardDescription>
+                </CardHeader>
+                <CardContent className="grid gap-6 sm:grid-cols-2">
+                <FormField
+                    control={form.control}
+                    name="classId"
+                    render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Class</FormLabel>
+                        <Select onValueChange={handleClassChange} defaultValue={field.value}>
                         <FormControl>
-                          <Button
-                            variant={"outline"}
-                            className={cn(
-                              "w-full pl-3 text-left font-normal",
-                              !field.value && "text-muted-foreground"
-                            )}
-                          >
-                            {field.value ? (
-                              format(field.value, "PPP")
-                            ) : (
-                              <span>Pick a date</span>
-                            )}
-                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                          </Button>
+                            <SelectTrigger>
+                            <SelectValue placeholder="Select a class" />
+                            </SelectTrigger>
                         </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={field.value}
-                          onSelect={field.onChange}
-                          disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </CardContent>
-          </form>
-        </Form>
-      </Card>
-      
-      {selectedClass && (
-        <Card>
-            <CardHeader>
-                <CardTitle>Mark Student Status</CardTitle>
-                <CardDescription>For class {selectedClass} on {format(form.getValues('date'), "PP")}</CardDescription>
-                <div className="flex gap-2 pt-2">
-                    <Button size="sm" variant="outline" onClick={() => handleMarkAll("Present")}>Mark All Present</Button>
-                    <Button size="sm" variant="outline" onClick={() => handleMarkAll("Absent")}>Mark All Absent</Button>
-                </div>
-            </CardHeader>
-            <CardContent>
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Roll No</TableHead>
-                            <TableHead>Student Name</TableHead>
-                            <TableHead className="text-right">Status</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {studentsInClass.length > 0 ? (
-                            studentsInClass.map((student) => (
-                                <TableRow key={student.studentId}>
-                                    <TableCell>{student.rollNo}</TableCell>
-                                    <TableCell className="font-medium">{student.name}</TableCell>
-                                    <TableCell className="text-right">
-                                      <RadioGroup
-                                        value={studentStatuses[student.studentId] || 'Present'}
-                                        onValueChange={(status: AttendanceStatus) => handleStatusChange(student.studentId, status)}
-                                        className="flex justify-end gap-4"
-                                      >
-                                        <div className="flex items-center space-x-2">
-                                          <RadioGroupItem value="Present" id={`${student.studentId}-present`}/>
-                                          <Label htmlFor={`${student.studentId}-present`}>P</Label>
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                          <RadioGroupItem value="Absent" id={`${student.studentId}-absent`}/>
-                                          <Label htmlFor={`${student.studentId}-absent`}>A</Label>
-                                        </div>
-                                      </RadioGroup>
-                                    </TableCell>
+                        <SelectContent>
+                            {uniqueClasses.map((classId) => (
+                            <SelectItem key={classId} value={classId}>
+                                {classId}
+                            </SelectItem>
+                            ))}
+                        </SelectContent>
+                        </Select>
+                        <FormMessage />
+                    </FormItem>
+                    )}
+                />
+                <FormField
+                    control={form.control}
+                    name="date"
+                    render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                        <FormLabel>Date</FormLabel>
+                        <Popover>
+                        <PopoverTrigger asChild>
+                            <FormControl>
+                            <Button
+                                variant={"outline"}
+                                className={cn(
+                                "w-full pl-3 text-left font-normal",
+                                !field.value && "text-muted-foreground"
+                                )}
+                            >
+                                {field.value ? (
+                                format(field.value, "PPP")
+                                ) : (
+                                <span>Pick a date</span>
+                                )}
+                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                            </Button>
+                            </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                            mode="single"
+                            selected={field.value}
+                            onSelect={field.onChange}
+                            disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
+                            initialFocus
+                            />
+                        </PopoverContent>
+                        </Popover>
+                        <FormMessage />
+                    </FormItem>
+                    )}
+                />
+                </CardContent>
+                
+                {selectedClass && (
+                    <>
+                    <CardHeader>
+                        <CardTitle>Mark Student Status</CardTitle>
+                        <CardDescription>For class {selectedClass} on {format(form.getValues('date'), "PP")}</CardDescription>
+                        <div className="flex gap-2 pt-2">
+                            <Button size="sm" variant="outline" type="button" onClick={() => handleMarkAll("Present")}>Mark All Present</Button>
+                            <Button size="sm" variant="outline" type="button" onClick={() => handleMarkAll("Absent")}>Mark All Absent</Button>
+                        </div>
+                    </CardHeader>
+                    <CardContent>
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Roll No</TableHead>
+                                    <TableHead>Student Name</TableHead>
+                                    <TableHead className="text-right">Status</TableHead>
                                 </TableRow>
-                            ))
-                        ) : (
-                            <TableRow>
-                                <TableCell colSpan={3} className="h-24 text-center">No students in this class.</TableCell>
-                            </TableRow>
-                        )}
-                    </TableBody>
-                </Table>
-            </CardContent>
-            <CardFooter>
-                 <Button className="w-full" disabled={isSubmitting || isLoading} onClick={form.handleSubmit(onSubmit)}>
-                    {(isSubmitting || isLoading) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Submit Class Attendance
-                </Button>
-            </CardFooter>
-        </Card>
-      )}
-
+                            </TableHeader>
+                            <TableBody>
+                                {studentsInClass.length > 0 ? (
+                                    studentsInClass.map((student) => (
+                                        <TableRow key={student.studentId}>
+                                            <TableCell>{student.rollNo}</TableCell>
+                                            <TableCell className="font-medium">{student.name}</TableCell>
+                                            <TableCell className="text-right">
+                                            <RadioGroup
+                                                value={studentStatuses[student.studentId] || 'Present'}
+                                                onValueChange={(status: AttendanceStatus) => handleStatusChange(student.studentId, status)}
+                                                className="flex justify-end gap-4"
+                                            >
+                                                <div className="flex items-center space-x-2">
+                                                    <RadioGroupItem value="Present" id={`${student.studentId}-present`}/>
+                                                    <Label htmlFor={`${student.studentId}-present`}>P</Label>
+                                                </div>
+                                                <div className="flex items-center space-x-2">
+                                                    <RadioGroupItem value="Absent" id={`${student.studentId}-absent`}/>
+                                                    <Label htmlFor={`${student.studentId}-absent`}>A</Label>
+                                                </div>
+                                            </RadioGroup>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))
+                                ) : (
+                                    <TableRow>
+                                        <TableCell colSpan={3} className="h-24 text-center">No students in this class.</TableCell>
+                                    </TableRow>
+                                )}
+                            </TableBody>
+                        </Table>
+                    </CardContent>
+                    <CardFooter>
+                        <Button type="submit" className="w-full" disabled={isSubmitting || isLoading}>
+                            {(isSubmitting || isLoading) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            Submit Class Attendance
+                        </Button>
+                    </CardFooter>
+                    </>
+                )}
+            </Card>
+        </form>
+        </Form>
     </div>
   );
 }
