@@ -11,8 +11,9 @@ import {
   Check,
   Loader2,
 } from "lucide-react";
-import type { Student } from "@/lib/types";
+import type { Student, AttendanceRecord } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -63,12 +64,14 @@ type AttendanceStatus = "Present" | "Absent";
 
 interface ClassAttendanceTabProps {
   students: Student[];
+  attendanceRecords: AttendanceRecord[];
   onMarkAttendance: (data: { studentId: string; date: string; status: string }) => Promise<boolean>;
   isLoading: boolean;
 }
 
 export function ClassAttendanceTab({
   students,
+  attendanceRecords,
   onMarkAttendance,
   isLoading,
 }: ClassAttendanceTabProps) {
@@ -78,6 +81,7 @@ export function ClassAttendanceTab({
     studentStatuses,
     setStudentStatuses,
   ] = React.useState<Record<string, AttendanceStatus>>({});
+  const { toast } = useToast();
 
   const form = useForm<z.infer<typeof classAttendanceSchema>>({
     resolver: zodResolver(classAttendanceSchema),
@@ -122,6 +126,20 @@ export function ClassAttendanceTab({
   const onSubmit = async (data: z.infer<typeof classAttendanceSchema>) => {
     setIsSubmitting(true);
     const date = format(data.date, "yyyy-MM-dd");
+
+    const existingRecords = attendanceRecords.filter(
+      (record) => record.classId === data.classId && record.date === date
+    );
+
+    if (existingRecords.length > 0) {
+       toast({
+        variant: "destructive",
+        title: "Attendance Already Marked",
+        description: `Attendance for class ${data.classId} has already been marked on ${format(data.date, "PP")}. Please delete existing records first if you wish to overwrite them.`,
+      });
+      setIsSubmitting(false);
+      return;
+    }
 
     const promises = Object.entries(studentStatuses).map(([studentId, status]) => {
         return onMarkAttendance({ studentId, date, status });

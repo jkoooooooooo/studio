@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import type { Student, AttendanceRecord } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -112,6 +113,7 @@ export function AttendanceTab({
   const [recordToDelete, setRecordToDelete] = React.useState<AttendanceRecord | null>(null);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [selectedClass, setSelectedClass] = React.useState<string | null>(null);
+  const { toast } = useToast();
 
   const markAttendanceForm = useForm<z.infer<typeof markAttendanceSchema>>({
     resolver: zodResolver(markAttendanceSchema),
@@ -120,7 +122,7 @@ export function AttendanceTab({
 
   const filterForm = useForm<z.infer<typeof filterSchema>>({
     resolver: zodResolver(filterSchema),
-    defaultValues: { studentId: '', classId: ''},
+    defaultValues: { studentId: '', classId: '', date: undefined },
   });
 
   const uniqueClasses = React.useMemo(() => {
@@ -137,9 +139,25 @@ export function AttendanceTab({
     data: z.infer<typeof markAttendanceSchema>
   ) => {
     setIsSubmitting(true);
+    const dateStr = format(data.date, "yyyy-MM-dd");
+
+    const existingRecord = attendanceRecords.find(
+      (record) => record.studentId === data.studentId && record.date === dateStr
+    );
+
+    if (existingRecord) {
+      toast({
+        variant: "destructive",
+        title: "Attendance Already Marked",
+        description: `Attendance for this student has already been marked on ${format(data.date, "PP")}.`,
+      });
+      setIsSubmitting(false);
+      return;
+    }
+
     const success = await onMarkAttendance({
       studentId: data.studentId,
-      date: format(data.date, "yyyy-MM-dd"),
+      date: dateStr,
       status: data.status,
     });
     if(success) {
@@ -502,5 +520,3 @@ export function AttendanceTab({
     </>
   );
 }
-
-    

@@ -241,6 +241,7 @@ export function Dashboard() {
         return (
           <ClassAttendanceTab
             students={students}
+            attendanceRecords={attendanceRecords}
             onMarkAttendance={handleMarkAttendance}
             isLoading={isLoading}
           />
