@@ -12,6 +12,7 @@ import {
   Trash2,
   MoreHorizontal,
   Loader2,
+  ChevronDown,
 } from "lucide-react";
 import type { Student, AttendanceRecord } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -119,6 +120,7 @@ export function AttendanceTab({
 
   const filterForm = useForm<z.infer<typeof filterSchema>>({
     resolver: zodResolver(filterSchema),
+    defaultValues: { studentId: '', classId: ''},
   });
 
   const uniqueClasses = React.useMemo(() => {
@@ -333,16 +335,17 @@ export function AttendanceTab({
         
         <Card>
           <Collapsible>
-            <CardHeader>
-               <CollapsibleTrigger className="flex items-center justify-between">
-                <div>
-                    <CardTitle>Attendance History</CardTitle>
-                    <CardDescription>A complete log of all attendance records.</CardDescription>
-                </div>
-                <Button variant="ghost">
-                    <Filter className="mr-2 h-4 w-4" /> Filter Records
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                  <CardTitle>Attendance History</CardTitle>
+                  <CardDescription>A complete log of all attendance records.</CardDescription>
+              </div>
+              <CollapsibleTrigger asChild>
+                <Button variant="ghost" size="sm" className="w-9 p-0">
+                  <ChevronDown className="h-4 w-4" />
+                  <span className="sr-only">Toggle</span>
                 </Button>
-                </CollapsibleTrigger>
+              </CollapsibleTrigger>
             </CardHeader>
              <CollapsibleContent>
                 <Form {...filterForm}>
@@ -414,7 +417,7 @@ export function AttendanceTab({
                             <X className="mr-2 h-4 w-4" /> Clear
                             </Button>
                             <Button type="submit">
-                            <Filter className="mr-2 h-4 w-4" /> Apply
+                            <Filter className="mr-2 h-4 w-4" /> Apply Filters
                             </Button>
                         </CardFooter>
                     </form>
@@ -499,3 +502,5 @@ export function AttendanceTab({
     </>
   );
 }
+
+    
