@@ -93,14 +93,15 @@ export function ClassAttendanceTab({
     return Array.from(classIds);
   }, [students]);
   
+  const selectedStudentId = form.watch("studentId");
+
   const studentsInClass = React.useMemo(() => {
     const filteredStudents = selectedClass ? students.filter((s) => s.classId === selectedClass) : [];
-    const selectedStudentId = form.getValues("studentId");
     if(selectedStudentId) {
       return filteredStudents.filter(s => s.studentId === selectedStudentId);
     }
     return filteredStudents;
-  }, [students, selectedClass, form]);
+  }, [students, selectedClass, selectedStudentId]);
   
   React.useEffect(() => {
     // Reset statuses when class or student filter changes
@@ -213,7 +214,7 @@ export function ClassAttendanceTab({
                       <FormLabel>Student (Optional)</FormLabel>
                       <Select
                         onValueChange={field.onChange}
-                        value={field.value}
+                        value={field.value ?? ''}
                         disabled={!selectedClass}
                       >
                         <FormControl>
@@ -222,7 +223,6 @@ export function ClassAttendanceTab({
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                           <SelectItem value="">All Students</SelectItem>
                           {students.filter(s => s.classId === selectedClass).map((student) => (
                             <SelectItem key={student.studentId} value={student.studentId}>
                               {student.name} ({student.rollNo})
