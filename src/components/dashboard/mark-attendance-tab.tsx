@@ -4,7 +4,7 @@ import * as React from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { format, subDays } from "date-fns";
+import { format } from "date-fns";
 import {
   Calendar as CalendarIcon,
   Loader2,
@@ -207,7 +207,7 @@ export function MarkAttendanceTab({
                             selected={field.value}
                             onSelect={field.onChange}
                             disabled={(date) =>
-                                date > new Date() || date < subDays(new Date(), 7)
+                                date > new Date()
                             }
                             initialFocus
                           />
