@@ -22,6 +22,7 @@ export function AttendanceChart({ attendanceRecords }: AttendanceChartProps) {
         date: format(day, "MMM d"),
         Present: recordsForDay.filter(r => r.status === 'Present').length,
         Absent: recordsForDay.filter(r => r.status === 'Absent').length,
+        'Half Day': recordsForDay.filter(r => r.status === 'Half Day').length,
       };
     });
   }, [attendanceRecords]);
@@ -53,6 +54,7 @@ export function AttendanceChart({ attendanceRecords }: AttendanceChartProps) {
           />
           <Bar dataKey="Present" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
           <Bar dataKey="Absent" fill="hsl(var(--destructive))" radius={[4, 4, 0, 0]} />
+          <Bar dataKey="Half Day" fill="hsl(var(--secondary-foreground))" radius={[4, 4, 0, 0]} />
         </BarChart>
       </ResponsiveContainer>
     </div>

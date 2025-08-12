@@ -60,7 +60,7 @@ const classAttendanceSchema = z.object({
   studentId: z.string().optional(),
 });
 
-type AttendanceStatus = "Present" | "Absent";
+type AttendanceStatus = "Present" | "Absent" | "Half Day";
 
 interface ClassAttendanceTabProps {
   students: Student[];
@@ -265,7 +265,7 @@ export function ClassAttendanceTab({
                             selected={field.value}
                             onSelect={field.onChange}
                             disabled={(date) =>
-                                date > new Date() || date < subDays(new Date(), 7)
+                                date > new Date()
                             }
                             initialFocus
                             />
@@ -286,6 +286,7 @@ export function ClassAttendanceTab({
                         <div className="flex gap-2 pt-2">
                             <Button size="sm" variant="outline" type="button" onClick={() => handleMarkAll("Present")}>Mark All Present</Button>
                             <Button size="sm" variant="outline" type="button" onClick={() => handleMarkAll("Absent")}>Mark All Absent</Button>
+                            <Button size="sm" variant="outline" type="button" onClick={() => handleMarkAll("Half Day")}>Mark All Half Day</Button>
                         </div>
                     </CardHeader>
                     <CardContent>
@@ -316,6 +317,10 @@ export function ClassAttendanceTab({
                                                 <div className="flex items-center space-x-2">
                                                     <RadioGroupItem value="Absent" id={`${student.studentId}-absent`}/>
                                                     <Label htmlFor={`${student.studentId}-absent`}>A</Label>
+                                                </div>
+                                                <div className="flex items-center space-x-2">
+                                                    <RadioGroupItem value="Half Day" id={`${student.studentId}-half`}/>
+                                                    <Label htmlFor={`${student.studentId}-half`}>H</Label>
                                                 </div>
                                             </RadioGroup>
                                             </TableCell>

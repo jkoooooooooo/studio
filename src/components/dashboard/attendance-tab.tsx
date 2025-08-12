@@ -85,7 +85,7 @@ const markAttendanceSchema = z.object({
   classId: z.string({ required_error: "Please select a class." }),
   studentId: z.string({ required_error: "Please select a student." }),
   date: z.date({ required_error: "A date is required." }),
-  status: z.enum(["Present", "Absent"], {
+  status: z.enum(["Present", "Absent", "Half Day"], {
     required_error: "You need to select an attendance status.",
   }),
 });
@@ -171,6 +171,7 @@ export function AttendanceTab({
     switch (status) {
       case "Present": return "default";
       case "Absent": return "destructive";
+      case "Half Day": return "secondary";
       default: return "outline";
     }
   }
@@ -328,6 +329,12 @@ export function AttendanceTab({
                                   </FormControl>
                                   <FormLabel className="font-normal">Absent</FormLabel>
                                 </FormItem>
+                                <FormItem className="flex items-center space-x-2 space-y-0">
+                                  <FormControl>
+                                    <RadioGroupItem value="Half Day" />
+                                  </FormControl>
+                                  <FormLabel className="font-normal">Half Day</FormLabel>
+                                </FormItem>
                               </RadioGroup>
                             </FormControl>
                             <FormMessage />
@@ -409,7 +416,7 @@ export function AttendanceTab({
                                         selected={field.value}
                                         onSelect={field.onChange}
                                         disabled={(date) =>
-                                            date > new Date() || date < subDays(new Date(), 7)
+                                            date > new Date()
                                         }
                                         initialFocus
                                     />
