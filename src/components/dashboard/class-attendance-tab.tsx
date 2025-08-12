@@ -1,4 +1,3 @@
-
 "use client";
 
 import * as React from "react";
@@ -85,7 +84,7 @@ export function ClassAttendanceTab({
 
   const form = useForm<z.infer<typeof classAttendanceSchema>>({
     resolver: zodResolver(classAttendanceSchema),
-    defaultValues: { date: new Date() },
+    defaultValues: { date: new Date(), classId: "" },
   });
 
   const uniqueClasses = React.useMemo(() => {
@@ -148,6 +147,10 @@ export function ClassAttendanceTab({
     await Promise.all(promises);
     
     setIsSubmitting(false);
+    toast({
+        title: "Success",
+        description: "Class attendance marked successfully."
+    });
   };
 
   return (
@@ -175,7 +178,7 @@ export function ClassAttendanceTab({
                     render={({ field }) => (
                     <FormItem>
                         <FormLabel>Class</FormLabel>
-                        <Select onValueChange={handleClassChange} defaultValue={field.value}>
+                        <Select onValueChange={handleClassChange} value={field.value ?? ""}>
                         <FormControl>
                             <SelectTrigger>
                             <SelectValue placeholder="Select a class" />
@@ -233,9 +236,10 @@ export function ClassAttendanceTab({
                     )}
                 />
                 </CardContent>
-                
-                {selectedClass && (
-                    <>
+              </Card>
+
+              {selectedClass && (
+                <Card className="mt-8">
                     <CardHeader>
                         <CardTitle>Mark Student Status</CardTitle>
                         <CardDescription>For class {selectedClass} on {format(form.getValues('date'), "PP")}</CardDescription>
@@ -291,9 +295,8 @@ export function ClassAttendanceTab({
                             Submit Class Attendance
                         </Button>
                     </CardFooter>
-                    </>
-                )}
-            </Card>
+                </Card>
+            )}
         </form>
         </Form>
     </div>
