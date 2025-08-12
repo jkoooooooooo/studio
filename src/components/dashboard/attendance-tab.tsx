@@ -74,6 +74,7 @@ import {
 } from "@/components/ui/alert-dialog";
 
 const markAttendanceSchema = z.object({
+  classId: z.string({ required_error: "Please select a class." }),
   studentId: z.string({ required_error: "Please select a student." }),
   date: z.date({ required_error: "A date is required." }),
   status: z.enum(["Present", "Absent"], {
@@ -107,10 +108,11 @@ export function AttendanceTab({
   const [isAlertOpen, setIsAlertOpen] = React.useState(false);
   const [recordToDelete, setRecordToDelete] = React.useState<AttendanceRecord | null>(null);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [selectedClass, setSelectedClass] = React.useState<string | null>(null);
 
   const markAttendanceForm = useForm<z.infer<typeof markAttendanceSchema>>({
     resolver: zodResolver(markAttendanceSchema),
-    defaultValues: { date: new Date(), studentId: "" },
+    defaultValues: { date: new Date(), studentId: "", classId: "" },
   });
 
   const filterForm = useForm<z.infer<typeof filterSchema>>({
@@ -121,16 +123,27 @@ export function AttendanceTab({
     }
   });
 
+  const uniqueClasses = React.useMemo(() => {
+    const classIds = new Set(students.map((s) => s.classId));
+    return Array.from(classIds);
+  }, [students]);
+
+  const studentsInClass = React.useMemo(() => {
+    if (!selectedClass) return [];
+    return students.filter(s => s.classId === selectedClass);
+  }, [students, selectedClass])
+
   const onMarkAttendanceSubmit = async (
     data: z.infer<typeof markAttendanceSchema>
   ) => {
     setIsSubmitting(true);
     const success = await onMarkAttendance({
-      ...data,
+      studentId: data.studentId,
       date: format(data.date, "yyyy-MM-dd"),
+      status: data.status,
     });
     if(success) {
-      markAttendanceForm.reset({ studentId: '', status: undefined, date: new Date() });
+      markAttendanceForm.reset({ studentId: '', classId: data.classId, status: undefined, date: new Date() });
     }
     setIsSubmitting(false);
   };
@@ -156,7 +169,6 @@ export function AttendanceTab({
     switch (status) {
       case "Present": return "default";
       case "Absent": return "destructive";
-      case "Excused": return "secondary";
       default: return "outline";
     }
   }
@@ -185,18 +197,54 @@ export function AttendanceTab({
                   <CardContent className="space-y-4">
                     <FormField
                       control={markAttendanceForm.control}
+                      name="classId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Class</FormLabel>
+                          <Select
+                            onValueChange={(value) => {
+                              field.onChange(value);
+                              setSelectedClass(value);
+                              markAttendanceForm.setValue("studentId", ""); // Reset student
+                            }}
+                            defaultValue={field.value}
+                            value={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select a class" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {uniqueClasses.map((classId) => (
+                                <SelectItem key={classId} value={classId}>
+                                  {classId}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={markAttendanceForm.control}
                       name="studentId"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Student</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
+                          <Select
+                            onValueChange={field.onChange}
+                            value={field.value}
+                            disabled={!selectedClass}
+                          >
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue placeholder="Select a student" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              {students.map((student) => (
+                              {studentsInClass.map((student) => (
                                 <SelectItem key={student.studentId} value={student.studentId}>
                                   {student.name} ({student.rollNo})
                                 </SelectItem>
