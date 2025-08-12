@@ -22,7 +22,6 @@ export function AttendanceChart({ attendanceRecords }: AttendanceChartProps) {
         date: format(day, "MMM d"),
         Present: recordsForDay.filter(r => r.status === 'Present').length,
         Absent: recordsForDay.filter(r => r.status === 'Absent').length,
-        Excused: recordsForDay.filter(r => r.status === 'Excused').length,
       };
     });
   }, [attendanceRecords]);

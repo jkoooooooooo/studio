@@ -11,7 +11,7 @@ export interface AttendanceRecord {
   attendanceId: string;
   studentId: string;
   date: string; // YYYY-MM-DD
-  status: 'Present' | 'Absent' | 'Excused';
+  status: 'Present' | 'Absent';
   name?: string;
   rollNo?: string;
   classId?: string;

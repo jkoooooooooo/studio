@@ -59,7 +59,7 @@ const classAttendanceSchema = z.object({
   date: z.date({ required_error: "A date is required." }),
 });
 
-type AttendanceStatus = "Present" | "Absent" | "Excused";
+type AttendanceStatus = "Present" | "Absent";
 
 interface ClassAttendanceTabProps {
   students: Student[];
@@ -227,7 +227,6 @@ export function ClassAttendanceTab({
                 <div className="flex gap-2 pt-2">
                     <Button size="sm" variant="outline" onClick={() => handleMarkAll("Present")}>Mark All Present</Button>
                     <Button size="sm" variant="outline" onClick={() => handleMarkAll("Absent")}>Mark All Absent</Button>
-                    <Button size="sm" variant="outline" onClick={() => handleMarkAll("Excused")}>Mark All Excused</Button>
                 </div>
             </CardHeader>
             <CardContent>
@@ -258,10 +257,6 @@ export function ClassAttendanceTab({
                                         <div className="flex items-center space-x-2">
                                           <RadioGroupItem value="Absent" id={`${student.studentId}-absent`}/>
                                           <Label htmlFor={`${student.studentId}-absent`}>A</Label>
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                          <RadioGroupItem value="Excused" id={`${student.studentId}-excused`}/>
-                                          <Label htmlFor={`${student.studentId}-excused`}>E</Label>
                                         </div>
                                       </RadioGroup>
                                     </TableCell>

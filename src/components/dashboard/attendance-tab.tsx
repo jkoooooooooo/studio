@@ -76,7 +76,7 @@ import {
 const markAttendanceSchema = z.object({
   studentId: z.string({ required_error: "Please select a student." }),
   date: z.date({ required_error: "A date is required." }),
-  status: z.enum(["Present", "Absent", "Excused"], {
+  status: z.enum(["Present", "Absent"], {
     required_error: "You need to select an attendance status.",
   }),
 });
@@ -265,12 +265,6 @@ export function AttendanceTab({
                                   <RadioGroupItem value="Absent" />
                                 </FormControl>
                                 <FormLabel className="font-normal">Absent</FormLabel>
-                              </FormItem>
-                              <FormItem className="flex items-center space-x-2 space-y-0">
-                                <FormControl>
-                                  <RadioGroupItem value="Excused" />
-                                </FormControl>
-                                <FormLabel className="font-normal">Excused</FormLabel>
                               </FormItem>
                             </RadioGroup>
                           </FormControl>
