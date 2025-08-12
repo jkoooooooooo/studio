@@ -16,7 +16,6 @@ import {
 } from "lucide-react";
 import type { Student, AttendanceRecord } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -98,7 +97,7 @@ interface AttendanceTabProps {
   onMarkAttendance: (data: { studentId: string; date: string; status: string }) => Promise<boolean>;
   onApplyFilters: (filters: { studentId?: string; date?: string; classId?: string }) => void;
   onClearFilters: () => void;
-  onDeleteAttendance: (attendanceId: string) => void;
+  onDeleteAttendance: (attendanceId: string, studentId: string) => void;
 }
 
 export function AttendanceTab({
@@ -113,7 +112,6 @@ export function AttendanceTab({
   const [recordToDelete, setRecordToDelete] = React.useState<AttendanceRecord | null>(null);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [selectedClass, setSelectedClass] = React.useState<string | null>(null);
-  const { toast } = useToast();
 
   const markAttendanceForm = useForm<z.infer<typeof markAttendanceSchema>>({
     resolver: zodResolver(markAttendanceSchema),
@@ -140,20 +138,6 @@ export function AttendanceTab({
   ) => {
     setIsSubmitting(true);
     const dateStr = format(data.date, "yyyy-MM-dd");
-
-    const existingRecord = attendanceRecords.find(
-      (record) => record.studentId === data.studentId && record.date === dateStr
-    );
-
-    if (existingRecord) {
-      toast({
-        variant: "destructive",
-        title: "Attendance Already Marked",
-        description: `Attendance for this student has already been marked on ${format(data.date, "PP")}.`,
-      });
-      setIsSubmitting(false);
-      return;
-    }
 
     const success = await onMarkAttendance({
       studentId: data.studentId,
@@ -508,7 +492,7 @@ export function AttendanceTab({
               className="bg-destructive hover:bg-destructive/90"
               onClick={() => {
                 if (recordToDelete) {
-                  onDeleteAttendance(recordToDelete.attendanceId);
+                  onDeleteAttendance(recordToDelete.attendanceId, recordToDelete.studentId);
                 }
               }}
             >

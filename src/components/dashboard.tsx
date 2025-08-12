@@ -119,6 +119,19 @@ export function Dashboard() {
     status: string;
   }) => {
     try {
+      // Check for existing record
+      const dateStr = data.date;
+      const existingRecord = attendanceRecords.find(
+        (record) => record.studentId === data.studentId && record.date === dateStr
+      );
+      if (existingRecord) {
+        toast({
+          variant: "destructive",
+          title: "Attendance Already Marked",
+          description: `Attendance for this student has already been marked on this day.`,
+        });
+        return false;
+      }
       await markAttendance(data);
       toast({
         title: "Success",
@@ -183,9 +196,9 @@ export function Dashboard() {
     }
   };
 
-  const handleDeleteAttendance = async (attendanceId: string) => {
+  const handleDeleteAttendance = async (attendanceId: string, studentId: string) => {
     try {
-      await deleteAttendance({ attendanceId });
+      await deleteAttendance({ attendanceId, studentId });
       toast({
         title: "Success",
         description: "Attendance record deleted successfully.",
@@ -218,12 +231,28 @@ export function Dashboard() {
             attendanceRecords={attendanceRecords}
           />
         );
+      case "class-attendance":
+        return (
+          <ClassAttendanceTab
+            students={students}
+            attendanceRecords={attendanceRecords}
+            onMarkAttendance={handleMarkAttendance}
+            isLoading={isLoading}
+          />
+        );
       case "students":
         return (
           <StudentsTab
             students={students}
             onAddStudent={handleAddStudent}
             onDeleteStudent={handleDeleteStudent}
+          />
+        );
+      case "class-stats":
+        return (
+          <ClassStatsTab
+            students={students}
+            attendanceRecords={attendanceRecords}
           />
         );
       case "records":
@@ -235,22 +264,6 @@ export function Dashboard() {
             onApplyFilters={handleApplyFilters}
             onClearFilters={handleClearFilters}
             onDeleteAttendance={handleDeleteAttendance}
-          />
-        );
-      case "class-attendance":
-        return (
-          <ClassAttendanceTab
-            students={students}
-            attendanceRecords={attendanceRecords}
-            onMarkAttendance={handleMarkAttendance}
-            isLoading={isLoading}
-          />
-        );
-      case "class-stats":
-        return (
-          <ClassStatsTab
-            students={students}
-            attendanceRecords={attendanceRecords}
           />
         );
       default:

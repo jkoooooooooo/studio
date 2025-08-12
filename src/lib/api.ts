@@ -82,6 +82,6 @@ export async function markAttendance(attendanceData: { studentId: string, date: 
   return apiCall('/mark_attendance', 'POST', attendanceData);
 }
 
-export async function deleteAttendance(recordData: { attendanceId: string }): Promise<any> {
+export async function deleteAttendance(recordData: { attendanceId: string, studentId: string }): Promise<any> {
     return apiCall('/delete_attendance', 'POST', recordData);
 }
