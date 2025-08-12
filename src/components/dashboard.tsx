@@ -298,20 +298,20 @@ export function Dashboard() {
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton
-                  onClick={() => setActiveSection("records")}
-                  isActive={activeSection === "records"}
-                >
-                  <ListChecks />
-                  Attendance
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton
                   onClick={() => setActiveSection("class-stats")}
                   isActive={activeSection === "class-stats"}
                 >
                   <PieChart />
                   Class Stats
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  onClick={() => setActiveSection("records")}
+                  isActive={activeSection === "records"}
+                >
+                  <ListChecks />
+                  Attendance
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
