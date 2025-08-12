@@ -110,11 +110,15 @@ export function AttendanceTab({
 
   const markAttendanceForm = useForm<z.infer<typeof markAttendanceSchema>>({
     resolver: zodResolver(markAttendanceSchema),
-    defaultValues: { date: new Date() },
+    defaultValues: { date: new Date(), studentId: "" },
   });
 
   const filterForm = useForm<z.infer<typeof filterSchema>>({
     resolver: zodResolver(filterSchema),
+    defaultValues: {
+      studentId: "",
+      classId: "",
+    }
   });
 
   const onMarkAttendanceSubmit = async (
@@ -300,7 +304,7 @@ export function AttendanceTab({
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Student</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value || ''}>
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue placeholder="All Students" />
@@ -349,7 +353,7 @@ export function AttendanceTab({
                         <FormItem>
                           <FormLabel>Class</FormLabel>
                            <FormControl>
-                            <Input placeholder="Any Class" {...field} />
+                            <Input placeholder="Any Class" {...field} value={field.value || ''}/>
                           </FormControl>
                         </FormItem>
                       )}
