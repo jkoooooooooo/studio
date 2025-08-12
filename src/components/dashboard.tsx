@@ -8,6 +8,7 @@ import {
   School,
   Loader2,
   Group,
+  PieChart,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { Student, AttendanceRecord } from "@/lib/types";
@@ -33,8 +34,9 @@ import { StudentsTab } from "./dashboard/students-tab";
 import { AttendanceTab } from "./dashboard/attendance-tab";
 import { DashboardTab } from "./dashboard/dashboard-tab";
 import { ClassAttendanceTab } from "./dashboard/class-attendance-tab";
+import { ClassStatsTab } from "./dashboard/class-stats-tab";
 
-type Section = "dashboard" | "students" | "records" | "class-attendance";
+type Section = "dashboard" | "students" | "records" | "class-attendance" | "class-stats";
 
 export function Dashboard() {
   const [students, setStudents] = React.useState<Student[]>([]);
@@ -243,6 +245,13 @@ export function Dashboard() {
             isLoading={isLoading}
           />
         );
+      case "class-stats":
+        return (
+          <ClassStatsTab
+            students={students}
+            attendanceRecords={attendanceRecords}
+          />
+        );
       default:
         return null;
     }
@@ -294,6 +303,15 @@ export function Dashboard() {
                 >
                   <Group />
                   Class Attendance
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  onClick={() => setActiveSection("class-stats")}
+                  isActive={activeSection === "class-stats"}
+                >
+                  <PieChart />
+                  Class Stats
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
