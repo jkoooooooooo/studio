@@ -9,7 +9,6 @@ import {
   Loader2,
   Group,
   PieChart,
-  UserCheck,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { Student, AttendanceRecord } from "@/lib/types";
@@ -36,15 +35,13 @@ import { AttendanceTab } from "./dashboard/attendance-tab";
 import { DashboardTab } from "./dashboard/dashboard-tab";
 import { ClassAttendanceTab } from "./dashboard/class-attendance-tab";
 import { ClassStatsTab } from "./dashboard/class-stats-tab";
-import { MarkAttendanceTab } from "./dashboard/mark-attendance-tab";
 
 type Section =
   | "dashboard"
   | "students"
   | "attendance"
   | "class-attendance"
-  | "class-stats"
-  | "mark-attendance";
+  | "class-stats";
 
 export function Dashboard() {
   const [students, setStudents] = React.useState<Student[]>([]);
@@ -239,13 +236,6 @@ export function Dashboard() {
             attendanceRecords={attendanceRecords}
           />
         );
-      case "mark-attendance":
-        return (
-          <MarkAttendanceTab
-            students={students}
-            onMarkAttendance={handleMarkAttendance}
-          />
-        );
       case "class-attendance":
         return (
           <ClassAttendanceTab
@@ -278,6 +268,7 @@ export function Dashboard() {
             onApplyFilters={handleApplyFilters}
             onClearFilters={handleClearFilters}
             onDeleteAttendance={handleDeleteAttendance}
+            onMarkAttendance={handleMarkAttendance}
           />
         );
       default:
@@ -304,15 +295,6 @@ export function Dashboard() {
                 >
                   <LayoutDashboard />
                   Dashboard
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  onClick={() => setActiveSection("mark-attendance")}
-                  isActive={activeSection === "mark-attendance"}
-                >
-                  <UserCheck />
-                  Mark Attendance
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
