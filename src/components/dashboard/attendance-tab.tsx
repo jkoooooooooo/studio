@@ -97,7 +97,7 @@ interface AttendanceTabProps {
   onMarkAttendance: (data: { studentId: string; date: string; status: string }) => Promise<boolean>;
   onApplyFilters: (filters: { studentId?: string; date?: string; classId?: string }) => void;
   onClearFilters: () => void;
-  onDeleteAttendance: (attendanceId: string, studentId: string) => void;
+  onDeleteAttendance: (data: { studentId: string, date: string }) => void;
 }
 
 export function AttendanceTab({
@@ -343,7 +343,7 @@ export function AttendanceTab({
                   <CardDescription>A complete log of all attendance records.</CardDescription>
               </div>
               <CollapsibleTrigger asChild>
-                <Button variant="ghost" size="sm" className="w-9 p-0">
+                <Button variant="ghost" size="icon" className="w-9 p-0">
                   <ChevronDown className="h-4 w-4" />
                   <span className="sr-only">Toggle</span>
                 </Button>
@@ -359,7 +359,7 @@ export function AttendanceTab({
                             render={({ field }) => (
                                 <FormItem>
                                 <FormLabel>Student</FormLabel>
-                                <Select onValueChange={field.onChange} value={field.value || ''}>
+                                <Select onValueChange={field.onChange} value={field.value ?? ''}>
                                     <FormControl>
                                     <SelectTrigger>
                                         <SelectValue placeholder="All Students" />
@@ -492,7 +492,7 @@ export function AttendanceTab({
               className="bg-destructive hover:bg-destructive/90"
               onClick={() => {
                 if (recordToDelete) {
-                  onDeleteAttendance(recordToDelete.attendanceId, recordToDelete.studentId);
+                  onDeleteAttendance({ studentId: recordToDelete.studentId, date: recordToDelete.date });
                 }
               }}
             >

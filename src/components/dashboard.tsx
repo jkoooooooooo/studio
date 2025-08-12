@@ -196,9 +196,9 @@ export function Dashboard() {
     }
   };
 
-  const handleDeleteAttendance = async (attendanceId: string, studentId: string) => {
+  const handleDeleteAttendance = async (data: { studentId: string; date: string }) => {
     try {
-      await deleteAttendance({ attendanceId, studentId });
+      await deleteAttendance(data);
       toast({
         title: "Success",
         description: "Attendance record deleted successfully.",
@@ -312,20 +312,20 @@ export function Dashboard() {
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton
-                  onClick={() => setActiveSection("class-stats")}
-                  isActive={activeSection === "class-stats"}
-                >
-                  <PieChart />
-                  Class Stats
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton
                   onClick={() => setActiveSection("records")}
                   isActive={activeSection === "records"}
                 >
                   <ListChecks />
                   Attendance
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+               <SidebarMenuItem>
+                <SidebarMenuButton
+                  onClick={() => setActiveSection("class-stats")}
+                  isActive={activeSection === "class-stats"}
+                >
+                  <PieChart />
+                  Class Stats
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
