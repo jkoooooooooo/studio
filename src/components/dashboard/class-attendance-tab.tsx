@@ -4,7 +4,7 @@ import * as React from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { format } from "date-fns";
+import { format, subDays } from "date-fns";
 import {
   Calendar as CalendarIcon,
   Check,
@@ -264,7 +264,9 @@ export function ClassAttendanceTab({
                             mode="single"
                             selected={field.value}
                             onSelect={field.onChange}
-                            disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
+                            disabled={(date) =>
+                                date > new Date() || date < subDays(new Date(), 7)
+                            }
                             initialFocus
                             />
                         </PopoverContent>
