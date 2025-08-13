@@ -13,7 +13,10 @@ import {
   MoreHorizontal,
   ChevronDown,
   Loader2,
+  FileDown,
 } from "lucide-react";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 import type { Student, AttendanceRecord } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -175,6 +178,23 @@ export function AttendanceTab({
       default: return "outline";
     }
   }
+
+  const handleDownloadPdf = () => {
+    const doc = new jsPDF();
+    doc.text("Attendance History", 14, 16);
+    autoTable(doc, {
+      startY: 20,
+      head: [['Date', 'Student Name', 'Roll No', 'Class', 'Status']],
+      body: attendanceRecords.map(record => [
+        format(new Date(record.date), "PP"),
+        record.name,
+        record.rollNo,
+        record.classId,
+        record.status,
+      ]),
+    });
+    doc.save('attendance_history.pdf');
+  };
 
   return (
     <>
@@ -439,6 +459,9 @@ export function AttendanceTab({
                             />
                         </CardContent>
                         <CardFooter className="justify-end gap-2">
+                             <Button variant="outline" type="button" onClick={handleDownloadPdf}>
+                                <FileDown className="mr-2 h-4 w-4" /> Download PDF
+                            </Button>
                             <Button variant="ghost" type="button" onClick={handleClearFilters}>
                             <X className="mr-2 h-4 w-4" /> Clear
                             </Button>
@@ -471,7 +494,7 @@ export function AttendanceTab({
                                     <TableCell>{record.rollNo}</TableCell>
                                     <TableCell>{record.classId}</TableCell>
                                     <TableCell>
-                                        <Badge variant={statusVariant(record.status)}>{record.status.charAt(0)}</Badge>
+                                        <Badge variant={statusVariant(record.status)}>{record.status}</Badge>
                                     </TableCell>
                                     <TableCell className="text-right">
                                         <DropdownMenu>
