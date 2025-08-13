@@ -522,6 +522,11 @@ export function AttendanceTab({
                     </TableBody>
                 </Table>
             </CardContent>
+             <CardFooter className="justify-end">
+                <Button variant="outline" onClick={handleDownloadPdf}>
+                    <FileDown className="mr-2 h-4 w-4" /> Download PDF
+                </Button>
+            </CardFooter>
         </Card>
       </div>
 
