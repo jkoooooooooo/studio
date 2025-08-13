@@ -416,7 +416,7 @@ export function AttendanceTab({
                                         selected={field.value}
                                         onSelect={field.onChange}
                                         disabled={(date) =>
-                                            date > new Date()
+                                            date > new Date() || date < subDays(new Date(), 7)
                                         }
                                         initialFocus
                                     />
@@ -471,7 +471,7 @@ export function AttendanceTab({
                                     <TableCell>{record.rollNo}</TableCell>
                                     <TableCell>{record.classId}</TableCell>
                                     <TableCell>
-                                        <Badge variant={statusVariant(record.status)}>{record.status}</Badge>
+                                        <Badge variant={statusVariant(record.status)}>{record.status.charAt(0)}</Badge>
                                     </TableCell>
                                     <TableCell className="text-right">
                                         <DropdownMenu>
