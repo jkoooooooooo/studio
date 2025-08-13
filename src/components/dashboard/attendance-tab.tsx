@@ -167,11 +167,11 @@ export function AttendanceTab({
     setIsAlertOpen(true);
   };
 
-  const statusVariant = (status: string) => {
+  const statusVariant = (status: string): "default" | "destructive" | "secondary" | "outline" | "warning" => {
     switch (status) {
       case "Present": return "default";
       case "Absent": return "destructive";
-      case "Half Day": return "secondary";
+      case "Half Day": return "warning";
       default: return "outline";
     }
   }
