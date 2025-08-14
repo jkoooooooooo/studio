@@ -11,7 +11,6 @@ import {
   X,
   Trash2,
   MoreHorizontal,
-  ChevronDown,
   Loader2,
   FileDown,
 } from "lucide-react";
@@ -75,7 +74,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 const filterSchema = z.object({
@@ -207,272 +205,249 @@ export function AttendanceTab({
         </div>
         
         <Card>
-          <Collapsible>
-            <CardHeader className="flex flex-row items-center justify-between">
-                <div>
-                    <CardTitle>Mark Single Attendance</CardTitle>
-                    <CardDescription>Mark daily attendance for a single student.</CardDescription>
-                </div>
-                <CollapsibleTrigger asChild>
-                    <Button variant="ghost" size="icon" className="w-9 p-0">
-                    <ChevronDown className="h-4 w-4" />
-                    <span className="sr-only">Toggle Mark Attendance</span>
-                    </Button>
-                </CollapsibleTrigger>
+            <CardHeader>
+                <CardTitle>Mark Single Attendance</CardTitle>
+                <CardDescription>Mark daily attendance for a single student.</CardDescription>
             </CardHeader>
-             <CollapsibleContent>
-                <Form {...markAttendanceForm}>
-                  <form onSubmit={markAttendanceForm.handleSubmit(onMarkAttendanceSubmit)}>
-                    <CardContent className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                       <FormField
-                        control={markAttendanceForm.control}
-                        name="classId"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Class</FormLabel>
-                            <Select
-                              onValueChange={(value) => {
-                                field.onChange(value);
-                                setSelectedClass(value);
-                                markAttendanceForm.setValue("studentId", ""); // Reset student
-                              }}
-                              defaultValue={field.value}
-                              value={field.value}
+            <Form {...markAttendanceForm}>
+              <form onSubmit={markAttendanceForm.handleSubmit(onMarkAttendanceSubmit)}>
+                <CardContent className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                    <FormField
+                    control={markAttendanceForm.control}
+                    name="classId"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Class</FormLabel>
+                        <Select
+                            onValueChange={(value) => {
+                            field.onChange(value);
+                            setSelectedClass(value);
+                            markAttendanceForm.setValue("studentId", ""); // Reset student
+                            }}
+                            defaultValue={field.value}
+                            value={field.value}
+                        >
+                            <FormControl>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select a class" />
+                            </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                            {uniqueClasses.map((classId) => (
+                                <SelectItem key={classId} value={classId}>
+                                {classId}
+                                </SelectItem>
+                            ))}
+                            </SelectContent>
+                        </Select>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+                    <FormField
+                    control={markAttendanceForm.control}
+                    name="studentId"
+                    render={({ field }) => (
+                        <FormItem>
+                        <FormLabel>Student</FormLabel>
+                        <Select
+                            onValueChange={field.onChange}
+                            value={field.value}
+                            disabled={!selectedClass}
+                        >
+                            <FormControl>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select a student" />
+                            </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                            {studentsInClass.map((student) => (
+                                <SelectItem key={student.studentId} value={student.studentId}>
+                                {student.name} ({student.rollNo})
+                                </SelectItem>
+                            ))}
+                            </SelectContent>
+                        </Select>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+                    <FormField
+                    control={markAttendanceForm.control}
+                    name="date"
+                    render={({ field }) => (
+                        <FormItem className="flex flex-col">
+                        <FormLabel>Date</FormLabel>
+                        <Popover>
+                            <PopoverTrigger asChild>
+                            <FormControl>
+                                <Button
+                                variant={"outline"}
+                                className={cn(
+                                    "w-full pl-3 text-left font-normal",
+                                    !field.value && "text-muted-foreground"
+                                )}
+                                >
+                                {field.value ? (
+                                    format(field.value, "PPP")
+                                ) : (
+                                    <span>Pick a date</span>
+                                )}
+                                <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                                </Button>
+                            </FormControl>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                            <Calendar
+                                mode="single"
+                                selected={field.value}
+                                onSelect={field.onChange}
+                                disabled={(date) =>
+                                    date > new Date()
+                                }
+                                initialFocus
+                            />
+                            </PopoverContent>
+                        </Popover>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+                    <FormField
+                    control={markAttendanceForm.control}
+                    name="status"
+                    render={({ field }) => (
+                        <FormItem className="space-y-3">
+                        <FormLabel>Status</FormLabel>
+                        <FormControl>
+                            <RadioGroup
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                            className="flex gap-4 pt-2"
                             >
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select a class" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {uniqueClasses.map((classId) => (
-                                  <SelectItem key={classId} value={classId}>
-                                    {classId}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={markAttendanceForm.control}
+                            <FormItem className="flex items-center space-x-2 space-y-0">
+                                <FormControl>
+                                <RadioGroupItem value="Present" />
+                                </FormControl>
+                                <FormLabel className="font-normal">Present</FormLabel>
+                            </FormItem>
+                            <FormItem className="flex items-center space-x-2 space-y-0">
+                                <FormControl>
+                                <RadioGroupItem value="Absent" />
+                                </FormControl>
+                                <FormLabel className="font-normal">Absent</FormLabel>
+                            </FormItem>
+                            <FormItem className="flex items-center space-x-2 space-y-0">
+                                <FormControl>
+                                <RadioGroupItem value="Half Day" />
+                                </FormControl>
+                                <FormLabel className="font-normal">Half Day</FormLabel>
+                            </FormItem>
+                            </RadioGroup>
+                        </FormControl>
+                        <FormMessage />
+                        </FormItem>
+                    )}
+                    />
+                </CardContent>
+                <CardFooter>
+                    <Button type="submit" className="w-full" disabled={isSubmitting}>
+                    {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    Submit Attendance
+                    </Button>
+                </CardFooter>
+                </form>
+            </Form>
+
+            <CardHeader>
+                <CardTitle>Filter Records</CardTitle>
+                <CardDescription>Filter attendance records by student, date, or class.</CardDescription>
+            </CardHeader>
+            <Form {...filterForm}>
+                <form onSubmit={filterForm.handleSubmit(onFilterSubmit)}>
+                    <CardContent className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                        <FormField
+                        control={filterForm.control}
                         name="studentId"
                         render={({ field }) => (
-                          <FormItem>
+                            <FormItem>
                             <FormLabel>Student</FormLabel>
-                            <Select
-                              onValueChange={field.onChange}
-                              value={field.value}
-                              disabled={!selectedClass}
-                            >
-                              <FormControl>
+                            <Select onValueChange={field.onChange} value={field.value ?? ''}>
+                                <FormControl>
                                 <SelectTrigger>
-                                  <SelectValue placeholder="Select a student" />
+                                    <SelectValue placeholder="All Students" />
                                 </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {studentsInClass.map((student) => (
-                                  <SelectItem key={student.studentId} value={student.studentId}>
-                                    {student.name} ({student.rollNo})
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
+                                </FormControl>
+                                <SelectContent>
+                                    {students.map((student) => (
+                                        <SelectItem key={student.studentId} value={student.studentId}>
+                                        {student.name} ({student.rollNo})
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
                             </Select>
-                            <FormMessage />
-                          </FormItem>
+                            </FormItem>
                         )}
-                      />
-                      <FormField
-                        control={markAttendanceForm.control}
+                        />
+                        <FormField
+                        control={filterForm.control}
                         name="date"
                         render={({ field }) => (
-                          <FormItem className="flex flex-col">
+                            <FormItem className="flex flex-col">
                             <FormLabel>Date</FormLabel>
                             <Popover>
-                              <PopoverTrigger asChild>
+                                <PopoverTrigger asChild>
                                 <FormControl>
-                                  <Button
+                                    <Button
                                     variant={"outline"}
-                                    className={cn(
-                                      "w-full pl-3 text-left font-normal",
-                                      !field.value && "text-muted-foreground"
-                                    )}
-                                  >
-                                    {field.value ? (
-                                      format(field.value, "PPP")
-                                    ) : (
-                                      <span>Pick a date</span>
-                                    )}
+                                    className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}
+                                    >
+                                    {field.value ? format(field.value, "PPP") : <span>Any Date</span>}
                                     <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                  </Button>
+                                    </Button>
                                 </FormControl>
-                              </PopoverTrigger>
-                              <PopoverContent className="w-auto p-0" align="start">
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0" align="start">
                                 <Calendar
-                                  mode="single"
-                                  selected={field.value}
-                                  onSelect={field.onChange}
-                                  disabled={(date) =>
-                                      date > new Date()
-                                  }
-                                  initialFocus
+                                    mode="single"
+                                    selected={field.value}
+                                    onSelect={field.onChange}
+                                    disabled={(date) =>
+                                        date > new Date()
+                                    }
+                                    initialFocus
                                 />
-                              </PopoverContent>
+                                </PopoverContent>
                             </Popover>
-                            <FormMessage />
-                          </FormItem>
+                            </FormItem>
                         )}
-                      />
-                      <FormField
-                        control={markAttendanceForm.control}
-                        name="status"
+                        />
+                        <FormField
+                        control={filterForm.control}
+                        name="classId"
                         render={({ field }) => (
-                          <FormItem className="space-y-3">
-                            <FormLabel>Status</FormLabel>
+                            <FormItem>
+                            <FormLabel>Class</FormLabel>
                             <FormControl>
-                              <RadioGroup
-                                onValueChange={field.onChange}
-                                defaultValue={field.value}
-                                className="flex gap-4 pt-2"
-                              >
-                                <FormItem className="flex items-center space-x-2 space-y-0">
-                                  <FormControl>
-                                    <RadioGroupItem value="Present" />
-                                  </FormControl>
-                                  <FormLabel className="font-normal">Present</FormLabel>
-                                </FormItem>
-                                <FormItem className="flex items-center space-x-2 space-y-0">
-                                  <FormControl>
-                                    <RadioGroupItem value="Absent" />
-                                  </FormControl>
-                                  <FormLabel className="font-normal">Absent</FormLabel>
-                                </FormItem>
-                                <FormItem className="flex items-center space-x-2 space-y-0">
-                                  <FormControl>
-                                    <RadioGroupItem value="Half Day" />
-                                  </FormControl>
-                                  <FormLabel className="font-normal">Half Day</FormLabel>
-                                </FormItem>
-                              </RadioGroup>
+                                <Input placeholder="Any Class" {...field} value={field.value ?? ''}/>
                             </FormControl>
-                            <FormMessage />
-                          </FormItem>
+                            </FormItem>
                         )}
-                      />
+                        />
                     </CardContent>
-                    <CardFooter>
-                      <Button type="submit" className="w-full" disabled={isSubmitting}>
-                        {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        Submit Attendance
-                      </Button>
+                    <CardFooter className="justify-end gap-2">
+                        <Button variant="outline" type="button" onClick={handleDownloadPdf}>
+                            <FileDown className="mr-2 h-4 w-4" /> Download PDF
+                        </Button>
+                        <Button variant="ghost" type="button" onClick={handleClearFilters}>
+                        <X className="mr-2 h-4 w-4" /> Clear
+                        </Button>
+                        <Button type="submit">
+                        <Filter className="mr-2 h-4 w-4" /> Apply Filters
+                        </Button>
                     </CardFooter>
-                  </form>
-                </Form>
-             </CollapsibleContent>
-            </Collapsible>
-          <Collapsible>
-            <CardHeader className="flex flex-row items-center justify-between">
-                <div>
-                    <CardTitle>Filter Records</CardTitle>
-                    <CardDescription>Filter attendance records by student, date, or class.</CardDescription>
-                </div>
-                <CollapsibleTrigger asChild>
-                    <Button variant="ghost" size="icon" className="w-9 p-0">
-                    <ChevronDown className="h-4 w-4" />
-                    <span className="sr-only">Toggle Filters</span>
-                    </Button>
-                </CollapsibleTrigger>
-            </CardHeader>
-             <CollapsibleContent>
-                <Form {...filterForm}>
-                    <form onSubmit={filterForm.handleSubmit(onFilterSubmit)}>
-                        <CardContent className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                            <FormField
-                            control={filterForm.control}
-                            name="studentId"
-                            render={({ field }) => (
-                                <FormItem>
-                                <FormLabel>Student</FormLabel>
-                                <Select onValueChange={field.onChange} value={field.value ?? ''}>
-                                    <FormControl>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="All Students" />
-                                    </SelectTrigger>
-                                    </FormControl>
-                                    <SelectContent>
-                                        {students.map((student) => (
-                                            <SelectItem key={student.studentId} value={student.studentId}>
-                                            {student.name} ({student.rollNo})
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                </FormItem>
-                            )}
-                            />
-                            <FormField
-                            control={filterForm.control}
-                            name="date"
-                            render={({ field }) => (
-                                <FormItem className="flex flex-col">
-                                <FormLabel>Date</FormLabel>
-                                <Popover>
-                                    <PopoverTrigger asChild>
-                                    <FormControl>
-                                        <Button
-                                        variant={"outline"}
-                                        className={cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground")}
-                                        >
-                                        {field.value ? format(field.value, "PPP") : <span>Any Date</span>}
-                                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                                        </Button>
-                                    </FormControl>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-auto p-0" align="start">
-                                    <Calendar
-                                        mode="single"
-                                        selected={field.value}
-                                        onSelect={field.onChange}
-                                        disabled={(date) =>
-                                            date > new Date() || date < subDays(new Date(), 7)
-                                        }
-                                        initialFocus
-                                    />
-                                    </PopoverContent>
-                                </Popover>
-                                </FormItem>
-                            )}
-                            />
-                            <FormField
-                            control={filterForm.control}
-                            name="classId"
-                            render={({ field }) => (
-                                <FormItem>
-                                <FormLabel>Class</FormLabel>
-                                <FormControl>
-                                    <Input placeholder="Any Class" {...field} value={field.value ?? ''}/>
-                                </FormControl>
-                                </FormItem>
-                            )}
-                            />
-                        </CardContent>
-                        <CardFooter className="justify-end gap-2">
-                             <Button variant="outline" type="button" onClick={handleDownloadPdf}>
-                                <FileDown className="mr-2 h-4 w-4" /> Download PDF
-                            </Button>
-                            <Button variant="ghost" type="button" onClick={handleClearFilters}>
-                            <X className="mr-2 h-4 w-4" /> Clear
-                            </Button>
-                            <Button type="submit">
-                            <Filter className="mr-2 h-4 w-4" /> Apply Filters
-                            </Button>
-                        </CardFooter>
-                    </form>
-                </Form>
-             </CollapsibleContent>
-            </Collapsible>
+                </form>
+            </Form>
             <CardContent>
                 <Table>
                     <TableHeader>
