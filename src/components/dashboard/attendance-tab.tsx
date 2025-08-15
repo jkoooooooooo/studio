@@ -185,10 +185,10 @@ export function AttendanceTab({
       head: [['Date', 'Student Name', 'Roll No', 'Class', 'Status']],
       body: attendanceRecords.map(record => [
         format(new Date(record.date), "PP"),
-        record.name,
-        record.rollNo,
-        record.classId,
-        record.status,
+        String(record.name || ''),
+        String(record.rollNo || ''),
+        String(record.classId || ''),
+        String(record.status || '')
       ]),
     });
     doc.save('attendance_history.pdf');
