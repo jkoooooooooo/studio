@@ -4,8 +4,8 @@ import * as React from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { PlusCircle, Trash2, MoreHorizontal, Loader2 } from "lucide-react";
-import type { Student } from "@/lib/types";
+import { PlusCircle, Trash2, MoreHorizontal, Loader2, FileText, Printer } from "lucide-react";
+import type { Student, AttendanceRecord } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -27,6 +27,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator
 } from "@/components/ui/dropdown-menu";
 import {
   Sheet,
@@ -47,6 +48,15 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogClose
+} from "@/components/ui/dialog";
+import {
   Form,
   FormField,
   FormItem,
@@ -55,6 +65,9 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { generateStudentReport } from "@/ai/flows/student-report-flow";
+import { useToast } from "@/hooks/use-toast";
+
 
 const studentSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -68,12 +81,14 @@ type StudentFormData = z.infer<typeof studentSchema>;
 
 interface StudentsTabProps {
   students: Student[];
+  attendanceRecords: AttendanceRecord[];
   onAddStudent: (data: StudentFormData) => Promise<boolean>;
   onDeleteStudent: (studentId: string) => void;
 }
 
 export function StudentsTab({
   students,
+  attendanceRecords,
   onAddStudent,
   onDeleteStudent,
 }: StudentsTabProps) {
@@ -81,6 +96,11 @@ export function StudentsTab({
   const [isAlertOpen, setIsAlertOpen] = React.useState(false);
   const [studentToDelete, setStudentToDelete] = React.useState<Student | null>(null);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  
+  const [isReportDialogOpen, setIsReportDialogOpen] = React.useState(false);
+  const [isGeneratingReport, setIsGeneratingReport] = React.useState(false);
+  const [currentReport, setCurrentReport] = React.useState<{ studentName: string, content: string } | null>(null);
+  const { toast } = useToast();
 
   const form = useForm<StudentFormData>({
     resolver: zodResolver(studentSchema),
@@ -106,6 +126,47 @@ export function StudentsTab({
   const openDeleteDialog = (student: Student) => {
     setStudentToDelete(student);
     setIsAlertOpen(true);
+  };
+
+  const handleGenerateReport = async (student: Student) => {
+    setIsGeneratingReport(true);
+    setCurrentReport(null);
+    setIsReportDialogOpen(true);
+
+    try {
+      const studentAttendance = attendanceRecords.filter(
+        (record) => record.studentId === student.studentId
+      );
+
+      const reportContent = await generateStudentReport({
+        student: student,
+        attendanceRecords: studentAttendance,
+      });
+      setCurrentReport({ studentName: student.name, content: reportContent });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Report Generation Failed",
+        description: "Could not generate the attendance report. Please try again."
+      });
+       setIsReportDialogOpen(false);
+    } finally {
+      setIsGeneratingReport(false);
+    }
+  };
+
+  const handlePrintReport = () => {
+    const printWindow = window.open('', '', 'height=600,width=800');
+    if (printWindow && currentReport) {
+      printWindow.document.write('<html><head><title>Student Attendance Report</title>');
+      printWindow.document.write('<style>body { font-family: sans-serif; } pre { white-space: pre-wrap; }</style>');
+      printWindow.document.write('</head><body>');
+      printWindow.document.write(`<h1>Attendance Report for ${currentReport.studentName}</h1>`);
+      printWindow.document.write(`<pre>${currentReport.content}</pre>`);
+      printWindow.document.write('</body></html>');
+      printWindow.document.close();
+      printWindow.print();
+    }
   };
 
   return (
@@ -165,6 +226,11 @@ export function StudentsTab({
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
+                             <DropdownMenuItem onClick={() => handleGenerateReport(student)}>
+                              <FileText className="mr-2 h-4 w-4" />
+                              Generate Report
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
                             <DropdownMenuItem
                               className="text-destructive"
                               onClick={() => openDeleteDialog(student)}
@@ -309,6 +375,43 @@ export function StudentsTab({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Dialog open={isReportDialogOpen} onOpenChange={setIsReportDialogOpen}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>AI-Generated Attendance Report</DialogTitle>
+            <DialogDescription>
+              {currentReport ? `Report for ${currentReport.studentName}` : 'Generating report...'}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            {isGeneratingReport && (
+              <div className="flex items-center justify-center gap-2">
+                <Loader2 className="h-6 w-6 animate-spin" />
+                <p className="text-muted-foreground">The AI is analyzing the data...</p>
+              </div>
+            )}
+            {currentReport && (
+              <Card>
+                <CardContent className="p-6">
+                  <pre className="whitespace-pre-wrap font-sans text-sm">
+                    {currentReport.content}
+                  </pre>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+          <DialogFooter>
+              <DialogClose asChild>
+                <Button variant="outline">Close</Button>
+              </DialogClose>
+              <Button onClick={handlePrintReport} disabled={!currentReport || isGeneratingReport}>
+                  <Printer className="mr-2 h-4 w-4"/>
+                  Print
+              </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

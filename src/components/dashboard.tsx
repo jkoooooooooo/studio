@@ -249,6 +249,7 @@ export function Dashboard() {
         return (
           <StudentsTab
             students={students}
+            attendanceRecords={attendanceRecords}
             onAddStudent={handleAddStudent}
             onDeleteStudent={handleDeleteStudent}
           />
