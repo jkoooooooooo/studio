@@ -1,5 +1,3 @@
-"use server";
-
 import type { Student, AttendanceRecord } from "./types";
 
 const API_BASE_URL = 'https://wyenkshrll.execute-api.eu-north-1.amazonaws.com/test';
