@@ -9,6 +9,7 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 export const metadata: Metadata = {
   title: "AttendaTrack",
   description: "A modern attendance tracking application.",
+  icons: null,
 };
 
 export default function RootLayout({
