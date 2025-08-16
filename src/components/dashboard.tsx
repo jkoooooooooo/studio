@@ -9,6 +9,7 @@ import {
   Loader2,
   Group,
   PieChart,
+  LogIn,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import type { Student, AttendanceRecord } from "@/lib/types";
@@ -35,6 +36,7 @@ import { AttendanceTab } from "./dashboard/attendance-tab";
 import { DashboardTab } from "./dashboard/dashboard-tab";
 import { ClassAttendanceTab } from "./dashboard/class-attendance-tab";
 import { ClassStatsTab } from "./dashboard/class-stats-tab";
+import { Button } from "./ui/button";
 
 type Section =
   | "dashboard"
@@ -52,8 +54,15 @@ export function Dashboard() {
   const [activeSection, setActiveSection] =
     React.useState<Section>("dashboard");
   const { toast } = useToast();
+  const [isLoggedIn, setIsLoggedIn] = React.useState(false);
+
+  const cognitoLoginUrl = "https://eu-north-1buew0tukc.auth.eu-north-1.amazoncognito.com/login?client_id=2jlrpghnigsvncplvi4qao636m&response_type=code&scope=email+openid+phone&redirect_uri=https%3A%2F%2Fd1ow1h8mkm5sgu.cloudfront.net%2F";
 
   const loadData = React.useCallback(async () => {
+    if (!isLoggedIn) {
+      setIsLoading(false);
+      return;
+    };
     setIsLoading(true);
     try {
       const [studentsData, attendanceData] = await Promise.all([
@@ -74,7 +83,19 @@ export function Dashboard() {
     } finally {
       setIsLoading(false);
     }
-  }, [toast]);
+  }, [toast, isLoggedIn]);
+
+  React.useEffect(() => {
+    // In a real app, you'd check for a token here
+    // For now, we simulate being logged out initially
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('code')) {
+      // This is a simplified check. A real app would validate the code.
+      setIsLoggedIn(true);
+    } else {
+      setIsLoggedIn(false);
+    }
+  }, []);
 
   React.useEffect(() => {
     loadData();
@@ -220,7 +241,21 @@ export function Dashboard() {
   };
 
   const renderContent = () => {
-    if (isLoading && !students.length && !attendanceRecords.length) {
+    if (!isLoggedIn) {
+      return (
+        <div className="flex h-full w-full items-center justify-center">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold">Welcome to AttendaTrack</h2>
+            <p className="text-muted-foreground mb-4">Please log in to continue.</p>
+            <Button onClick={() => window.location.href = cognitoLoginUrl}>
+              <LogIn className="mr-2 h-4 w-4" /> Log In
+            </Button>
+          </div>
+        </div>
+      )
+    }
+
+    if (isLoading) {
       return (
         <div className="flex h-full w-full items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -287,55 +322,57 @@ export function Dashboard() {
               <h1 className="text-xl font-semibold">AttendaTrack</h1>
             </div>
           </SidebarHeader>
-          <SidebarContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  onClick={() => setActiveSection("dashboard")}
-                  isActive={activeSection === "dashboard"}
-                >
-                  <LayoutDashboard />
-                  Dashboard
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  onClick={() => setActiveSection("class-attendance")}
-                  isActive={activeSection === "class-attendance"}
-                >
-                  <Group />
-                  Class Attendance
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  onClick={() => setActiveSection("students")}
-                  isActive={activeSection === "students"}
-                >
-                  <Users />
-                  Students
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  onClick={() => setActiveSection("attendance")}
-                  isActive={activeSection === "attendance"}
-                >
-                  <ListChecks />
-                  Attendance
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-               <SidebarMenuItem>
-                <SidebarMenuButton
-                  onClick={() => setActiveSection("class-stats")}
-                  isActive={activeSection === "class-stats"}
-                >
-                  <PieChart />
-                  Class Stats
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarContent>
+          {isLoggedIn && (
+            <SidebarContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    onClick={() => setActiveSection("dashboard")}
+                    isActive={activeSection === "dashboard"}
+                  >
+                    <LayoutDashboard />
+                    Dashboard
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    onClick={() => setActiveSection("class-attendance")}
+                    isActive={activeSection === "class-attendance"}
+                  >
+                    <Group />
+                    Class Attendance
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    onClick={() => setActiveSection("students")}
+                    isActive={activeSection === "students"}
+                  >
+                    <Users />
+                    Students
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    onClick={() => setActiveSection("attendance")}
+                    isActive={activeSection === "attendance"}
+                  >
+                    <ListChecks />
+                    Attendance
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    onClick={() => setActiveSection("class-stats")}
+                    isActive={activeSection === "class-stats"}
+                  >
+                    <PieChart />
+                    Class Stats
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarContent>
+          )}
         </Sidebar>
         <SidebarInset>
           <main className="flex-1 p-4 md:p-6 lg:p-8">{renderContent()}</main>
