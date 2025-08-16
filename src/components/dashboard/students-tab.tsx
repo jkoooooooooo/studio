@@ -101,6 +101,7 @@ export function StudentsTab({
   const [isGeneratingReport, setIsGeneratingReport] = React.useState(false);
   const [currentReport, setCurrentReport] = React.useState<{ studentName: string, content: string } | null>(null);
   const { toast } = useToast();
+  const [searchQuery, setSearchQuery] = React.useState("");
 
   const form = useForm<StudentFormData>({
     resolver: zodResolver(studentSchema),
@@ -112,6 +113,16 @@ export function StudentsTab({
       parentPhone: "",
     },
   });
+
+  const filteredStudents = React.useMemo(() => {
+    if (!searchQuery) return students;
+    const lowercasedQuery = searchQuery.toLowerCase();
+    return students.filter(
+      (student) =>
+        student.name.toLowerCase().includes(lowercasedQuery) ||
+        student.rollNo.toLowerCase().includes(lowercasedQuery)
+    );
+  }, [students, searchQuery]);
 
   const onSubmit = async (data: StudentFormData) => {
     setIsSubmitting(true);
@@ -193,6 +204,14 @@ export function StudentsTab({
             <CardDescription>
               A list of all students in the system.
             </CardDescription>
+            <div className="pt-2">
+                <Input
+                  placeholder="Search by name or roll number..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="max-w-sm"
+                />
+            </div>
           </CardHeader>
           <CardContent>
             <Table>
@@ -207,8 +226,8 @@ export function StudentsTab({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {students.length > 0 ? (
-                  students.map((student) => (
+                {filteredStudents.length > 0 ? (
+                  filteredStudents.map((student) => (
                     <TableRow key={student.studentId}>
                       <TableCell className="font-medium">
                         {student.name}
